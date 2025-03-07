@@ -1,0 +1,7 @@
+{
+    "": "textures/placeholder.png",
+    "G": "textures/grey_wall_1.png",
+    "B": "textures/blue_wall_1.png",
+    "W": "textures/wood_wall_1.png",
+    "E": "textures/elevator_1.png"
+}

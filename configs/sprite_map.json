@@ -1,0 +1,37 @@
+{
+    "*": {
+        "name": "small_lamp",
+        "default": "sprites/decor/lamp_1.png",
+        "animations": null,
+        "shift": 0,
+        "scale": 1,
+        "animation_dist": null,
+        "animation_speed": null,
+        "transparent": true,
+        "hp": null
+    },
+    "o": {
+        "name": "small_lamp",
+        "default": "sprites/decor/lamp_1.png",
+        "animations": null,
+        "shift": 0,
+        "scale": 1,
+        "animation_dist": null,
+        "animation_speed": null,
+        "transparent": true,
+        "hp": null
+    },
+    "@": {
+        "name": "big_fairy",
+        "default": "sprites/big_fairy/idle/far6a0.png",
+        "animations": {
+            "idle": "sprites/big_fairy/idle/"
+        },
+        "shift": -0.5,
+        "scale": 1,
+        "animation_dist": 640,
+        "animation_speed": 10,
+        "transparent": false,
+        "hp": 1
+    }
+}

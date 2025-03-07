@@ -1,0 +1,8 @@
+{
+    "reimungton": {
+        "animation": "sprites/shotgun",
+        "particles": "sprites/shotgun/sfx",
+        "animation_speed": 1,
+        "damage": 1
+    }
+}
