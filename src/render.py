@@ -1,4 +1,4 @@
-from math import sin, cos, degrees
+from math import sin, cos
 import os
 import pygame
 import src.global_vars as cst
@@ -49,7 +49,7 @@ class Render:
 
             # vertical
             x, dx = (xl + cst.TILE, 1) if cos_a >= 0 else (xl, -1)
-            for _ in range(0, cst.WIDTH * 8, cst.TILE):
+            for _ in range(0, cst.WIDTH * 2, cst.TILE):
                 depth_vert = (x - ox) / cos_a
                 yv = oy + depth_vert * sin_a
                 # Set texture based on hit point

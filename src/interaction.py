@@ -8,16 +8,6 @@ class Interactable:
 
 
 def raycast_interact(npc_pos, game_map, player_pos):
-    """Cast a single ray and use as a way to interact with whatever
-
-    Args:
-        npc_pos (tuple): npc position
-        game_map (dict): dictionary of all map elements
-        player_pos (tuple): player position
-
-    Returns:
-        bool: is target detected
-    """
     npc_x, npc_y = npc_pos
     ox, oy = player_pos
     xm, ym = cst.mapping(ox, oy)
@@ -25,10 +15,10 @@ def raycast_interact(npc_pos, game_map, player_pos):
     cur_angle = atan2(delta_y, delta_x)
     cur_angle += pi
 
-    sin_a = sin(cur_angle)
-    sin_a = sin_a if sin_a else cst.EPSILON
-    cos_a = cos(cur_angle)
-    cos_a = cos_a if cos_a else cst.EPSILON
+    if not (sin_a := sin(cur_angle)):
+        sin_a = cst.EPSILON
+    if not (cos_a := cos(cur_angle)):
+        cos_a = cst.EPSILON
 
     # verticals
     x, dx = (xm + cst.TILE, 1) if cos_a >= 0 else (xm, -1)

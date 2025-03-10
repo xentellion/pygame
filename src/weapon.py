@@ -4,7 +4,6 @@ from src.animator import Animated
 from pygame import mixer
 
 
-@staticmethod
 def get_weapons():
     with open("configs/weapons.json", "r", encoding="utf-8") as f:
         weapons = json.load(f)

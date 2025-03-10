@@ -1,6 +1,47 @@
 import pygame
 from src import sprites, game_map, player, render, weapon
 from src import global_vars as cst
+from sys import exit
+
+
+def starting_screen(screen, clock):
+    font = pygame.font.Font("fonts/amazdoomright2.ttf", 150)
+    text = ["YUUM", "Нажмите любую кнопку"]
+    # bg = pygame.transform.scale(load_image("fon.jpg"), (cst.WIDTH, cst.HEIGHT))
+    # screen.blit(fon, (0, 0))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    quit()
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                return
+
+        screen.fill(cst.CEILING_COLOR)
+        start_point = cst.WIDTH // 2 - font.get_height() * (int(1.5 * len(text)) - 1)
+        for idx, strin in enumerate(text):
+            image = font.render(strin, 0, cst.TEXT_COLOR)
+            rect = image.get_size()
+            height_shift = int(rect[1] * 1.5)
+            width_shift = cst.WIDTH // 2 - rect[0] // 2
+            screen.blit(
+                image,
+                (
+                    width_shift,
+                    start_point + height_shift * idx,
+                    *rect,
+                ),
+            )
+        pygame.display.flip()
+        clock.tick(cst.FPS_LOCK)
+
+
+def quit():
+    pygame.quit()
+    exit()
 
 
 def main():
@@ -10,6 +51,8 @@ def main():
 
     running = True
     clock = pygame.time.Clock()
+
+    starting_screen(screen, clock)
 
     cst.OBJECTS = sprites.Sprites()
     renderer = render.Render(screen=screen)
