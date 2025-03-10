@@ -2,8 +2,6 @@ from math import sin, cos
 import os
 import pygame
 import src.global_vars as cst
-from src.player import Player
-from src.interaction import raycast_interact
 
 
 class Render:
@@ -16,9 +14,9 @@ class Render:
                 path = os.path.join(subdir, file)
                 self.textures[path] = pygame.image.load(path).convert_alpha()
 
-    def render_background(self, player):
-        self.screen.fill(cst.CEILING_COLOR)
-        pygame.draw.rect(
+    def render_background(self):
+        self.screen.fill(cst.CEILING_COLOR)  # "Sky"
+        pygame.draw.rect(  # "Ground"
             self.screen,
             cst.FLOOR_COLOR,
             (
@@ -29,54 +27,55 @@ class Render:
             ),
         )
 
-    def render_walls(self, player: Player, level_map):
+    def render_walls(self):
         walls = []
-        ox, oy = player.pos
+        ox, oy = cst.PLAYER.pos
+        # Bresenham's Line Algorythm
+        # Because screw checking for a wall every meter of space
         xl, yl = cst.mapping(ox, oy)
-        current_angle = player.angle - cst.HALV_FOV
+        current_angle = cst.PLAYER.angle - cst.HALV_FOV
 
         # Fix empty texture crash
         default_texture = next(iter(self.textures))
         texture_v, texture_h = default_texture, default_texture
-        del default_texture
 
         for ray in range(cst.RAY_COUNT):
-            # adjust for possible 0 division
+            # adjust trigonometry for possible 0 division
             if not (sin_a := sin(current_angle)):
                 sin_a = cst.EPSILON
             if not (cos_a := cos(current_angle)):
                 cos_a = cst.EPSILON
 
-            # vertical
+            # vertical steps
             x, dx = (xl + cst.TILE, 1) if cos_a >= 0 else (xl, -1)
             for _ in range(0, cst.WIDTH * 2, cst.TILE):
                 depth_vert = (x - ox) / cos_a
-                yv = oy + depth_vert * sin_a
+                y_vert = oy + depth_vert * sin_a
                 # Set texture based on hit point
-                if (tile_v := cst.mapping(x + dx, yv)) in level_map:
-                    texture_v = level_map[tile_v]
+                if (tile_v := cst.mapping(x + dx, y_vert)) in cst.GAME_MAP:
+                    texture_v = cst.GAME_MAP[tile_v]
                     break
                 x += dx * cst.TILE
             # Horizontal
             y, dy = (yl + cst.TILE, 1) if sin_a >= 0 else (yl, -1)
             for _ in range(0, cst.HEIGHT * 8, cst.TILE):
                 depth_height = (y - oy) / sin_a
-                xh = ox + depth_height * cos_a
-                if (tile_h := cst.mapping(xh, y + dy)) in level_map:
-                    texture_h = level_map[tile_h]
+                x_horiz = ox + depth_height * cos_a
+                if (tile_h := cst.mapping(x_horiz, y + dy)) in cst.GAME_MAP:
+                    texture_h = cst.GAME_MAP[tile_h]
                     break
                 y += dy * cst.TILE
             # depth projection
             depth, offset, texture = (
-                (depth_vert, yv, texture_v)
+                (depth_vert, y_vert, texture_v)
                 if depth_vert < depth_height
-                else (depth_height, xh, texture_h)
+                else (depth_height, x_horiz, texture_h)
             )
             offset = int(offset) % cst.TILE
-            depth *= cos(player.angle - current_angle)
+            depth *= cos(cst.PLAYER.angle - current_angle)
             depth = max(depth, cst.EPSILON)
             proj_height = int(cst.PROJ_COEFF / depth)
-
+            # Depth shadow color (because fog is more silent hill's shtick)
             color = 255 - int(255 / (1 + depth**2 * cst.EPSILON))
             # prevent out-of-screen render for performance reasons
             if proj_height > cst.HEIGHT:
@@ -93,10 +92,7 @@ class Render:
                 texture_slice = pygame.transform.scale(
                     texture_slice, (cst.SCALE, cst.HEIGHT)
                 )
-                wall_position = (
-                    ray * cst.SCALE,
-                    0,
-                )
+                wall_position = (ray * cst.SCALE, 0)
             else:
                 texture_slice = self.textures[texture].subsurface(
                     (
@@ -133,21 +129,15 @@ class Render:
                 _, item, item_pos, _ = element
                 self.screen.blit(item, item_pos)
 
-    def render_gun(self, player: Player, target, game_map):
-        self.screen.blit(*player.current_weapon.draw_gun())
+    def render_gun(self, target):
+        self.screen.blit(*cst.PLAYER.current_weapon.render_gun())
         # Draw flare if gun has fired
-        if player.current_weapon.in_progress:
-            if player.current_weapon.dealing_damage:
-                if target[-1][-1].hp and raycast_interact(
-                    target[-1][-1].position, game_map, player.pos
-                ):
-                    target[-1][-1].take_damage(player.current_weapon.damage)
-                player.current_weapon.dealing_damage = False
-            self.render_flare(target[:-1], player)
+        if cst.PLAYER.current_weapon.in_progress:
+            self.render_flare(target[:-1])
 
-    def render_flare(self, target, player):
+    def render_flare(self, target):
         self.shot_proj = min(target, key=lambda x: x[1])[1] // 2
-        shot = player.current_weapon.particles.draw_flare()
+        shot = cst.PLAYER.current_weapon.particles.draw_flare()
         if shot:
             shot = pygame.transform.scale(shot, (self.shot_proj, self.shot_proj))
             rect = shot.get_rect()
@@ -156,16 +146,16 @@ class Render:
                 (cst.WIDTH // 2 - rect.w // 2, cst.HALF_HEIGHT - rect.h // 2),
             )
 
-    def render_ui(self, player: Player):
+    def render_ui(self):
         # HP
-        hp = f"Health: {player.hp}/{player.max_hp}"
+        hp = f"Health: {cst.PLAYER.hp}/{cst.PLAYER.max_hp}"
         image = self.font.render(
-            hp, 0, cst.TEXT_COLOR if player.hp > 10 else cst.RED_COLOR
+            hp, 0, cst.TEXT_COLOR if cst.PLAYER.hp > 10 else cst.RED_COLOR
         )
         x, y = image.get_size()
         self.screen.blit(image, (cst.WIDTH - 65 - x, cst.HEIGHT - 50 - y))
         # Ammo
-        num = player.current_weapon.ammo
+        num = cst.PLAYER.current_weapon.ammo
         ammo = f"Ammo: {num}"
         image = self.font.render(ammo, 0, cst.TEXT_COLOR if num else cst.RED_COLOR)
         x, y = image.get_size()

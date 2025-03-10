@@ -1,5 +1,5 @@
 import pygame
-from src import sprites, game_map, player, render, weapon
+from src import objects, game_map, player, render
 from src import global_vars as cst
 from sys import exit
 
@@ -16,8 +16,6 @@ def starting_screen(screen, clock):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     quit()
-                return
-            elif event.type == pygame.MOUSEBUTTONDOWN:
                 return
 
         screen.fill(cst.CEILING_COLOR)
@@ -46,6 +44,7 @@ def quit():
 
 def main():
     pygame.init()
+    pygame.display.set_caption("Yuuka gaming")
     screen = pygame.display.set_mode((cst.WIDTH, cst.HEIGHT))
     pygame.display.flip()
 
@@ -54,43 +53,54 @@ def main():
 
     starting_screen(screen, clock)
 
-    cst.OBJECTS = sprites.Sprites()
     renderer = render.Render(screen=screen)
-    level, player_pos = game_map.create_map(
+    cst.OBJECTS = objects.Objects()
+
+    player_pos = game_map.create_map(
         elements=cst.OBJECTS,
         level="maps/level1.txt",
         tile_size=cst.TILE,
     )
-    weapon.get_weapons()
-    this_player = player.Player(
-        position=player_pos,
-    )
-    pygame.mixer.pre_init(44100, -16, 2, 2048)
+
+    # yay, a singleton (why though)
+    if not cst.PLAYER:
+        cst.PLAYER = player.Player(
+            position=player_pos,
+        )
+
     pygame.mixer.init()
     pygame.mixer.music.load("audio/Doom OST (Touhou Soundfont) - E1M5 Suspense.mp3")
 
     pygame.mouse.set_visible(False)
     # pygame.event.set_grab(True)
     pygame.mixer.music.play(10)
+
     while running:
-        # CONTROLS
-        for event in pygame.event.get():
-            running = this_player.quit(event)
-            this_player.rotate(event)
-            this_player.shoot(event)
-            this_player.use(event)
-        keys = pygame.key.get_pressed()
-        this_player.move(clock=clock, keys=keys, colliders=level)
-        # RENDER
-        renderer.render_background(this_player)
-        walls, aiming_point = renderer.render_walls(this_player, level)
+        # check statics
+        renderer.render_background()
+        walls, aiming_point = renderer.render_walls()
         renderer.render_world(
-            walls + [sprite.face_player(this_player) for sprite in cst.OBJECTS.obj_list]
+            walls + [sprite.face_player() for sprite in cst.OBJECTS.obj_list]
         )
-        renderer.render_gun(this_player, [aiming_point, cst.OBJECTS.hit_sprite], level)
-        renderer.render_ui(this_player)
-        if not __debug__:
+        renderer.render_gun([aiming_point, cst.OBJECTS.hit_sprite()])
+        renderer.render_ui()
+
+        # Player's turn
+        for event in pygame.event.get():
+            running = cst.PLAYER.quit(event)
+            cst.PLAYER.rotate(event)
+            cst.PLAYER.shoot(event, [aiming_point, cst.OBJECTS.hit_sprite()])
+            cst.PLAYER.use(event)
+        cst.PLAYER.move(clock=clock, keys=pygame.key.get_pressed())
+
+        # NPC's turn
+        for i in cst.OBJECTS.obj_list:
+            if i.npc:
+                i.move()
+
+        if __debug__:
             renderer.frame_count(clock=clock)
+
         pygame.display.flip()
         clock.tick(cst.FPS_LOCK)
     pygame.quit()

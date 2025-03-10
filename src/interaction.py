@@ -2,14 +2,9 @@ from math import atan2, pi, sin, cos
 import src.global_vars as cst
 
 
-class Interactable:
-    def __init__():
-        pass
-
-
-def raycast_interact(npc_pos, game_map, player_pos):
+def raycast_interact(npc_pos):
     npc_x, npc_y = npc_pos
-    ox, oy = player_pos
+    ox, oy = cst.PLAYER.pos
     xm, ym = cst.mapping(ox, oy)
     delta_x, delta_y = ox - npc_x, oy - npc_y
     cur_angle = atan2(delta_y, delta_x)
@@ -25,8 +20,7 @@ def raycast_interact(npc_pos, game_map, player_pos):
     for i in range(0, int(abs(delta_x)) // cst.TILE):
         depth_v = (x - ox) / cos_a
         yv = oy + depth_v * sin_a
-        tile_v = cst.mapping(x + dx, yv)
-        if tile_v in game_map:
+        if cst.mapping(x + dx, yv) in cst.GAME_MAP:
             return False
         x += dx * cst.TILE
 
@@ -35,8 +29,7 @@ def raycast_interact(npc_pos, game_map, player_pos):
     for i in range(0, int(abs(delta_y)) // cst.TILE):
         depth_h = (y - oy) / sin_a
         xh = ox + depth_h * cos_a
-        tile_h = cst.mapping(xh, y + dy)
-        if tile_h in game_map:
+        if cst.mapping(xh, y + dy) in cst.GAME_MAP:
             return False
         y += dy * cst.TILE
     return True

@@ -1,10 +1,14 @@
 from math import tan, pi
 from pygame import Color
+from src.player import Player
 
 
+PLAYER: Player = None
+OBJECTS = None
 SPRITES = {}
 WEAPONS = {}
-OBJECTS = None
+GAME_MAP = {}
+
 
 WIDTH, HEIGHT = 1200, 800
 PROP = HEIGHT // 200
