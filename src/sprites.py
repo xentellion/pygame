@@ -2,6 +2,7 @@ from math import sqrt, atan2, cos, pi, inf
 import os
 import pygame
 import src.global_vars as cst
+from src.animator import Animated
 
 
 class Sprites:
@@ -17,12 +18,13 @@ class Sprites:
     @property
     def hit_sprite(self):
         return min(
-            [x.is_aimed_at for x in self.obj_list],
+            [(x.is_aimed_at, x) for x in self.obj_list],
+            key=lambda x: x[0],
             default=(inf, 0),
         )
 
 
-class PlacedObject:
+class PlacedObject(Animated):
     def __init__(
         self,
         position: tuple,
@@ -35,32 +37,44 @@ class PlacedObject:
         animation_speed: int,
         transparent: bool,
         hp: int,
+        npc: bool,
+        damage_sound: str,
+        death_sound: str,
     ):
-        self.position = tuple(map(lambda x: x * cst.TILE, position))
-        self.name = name
-        self.default = cst.SPRITES[default]
-        self.animations = (
-            {
+        super().__init__(
+            None,
+            animation_speed=animation_speed,
+        )
+        if animations:
+            self.animations = {
                 k: [cst.SPRITES[os.path.join(v, i)] for i in os.listdir(v)]
                 for k, v in animations.items()
             }
-            if animations
-            else animations
-        )
+            self.animation = self.animations["idle"]
+        else:
+            self.animations = self.animation = animations
+
+        self.position = tuple(map(lambda x: x * cst.TILE, position))
+        self.name = name
+        self.default = cst.SPRITES[default]
+
         self.shift = shift
         self.scale = scale
         self.animation_dist = animation_dist
-        self.animation_speed = animation_speed
-        self.animation_counter = 0
 
         self.current_sprite = self.default
-        self.current_frame = 0
-        self.current_animation = "idle"
-
         self.transparent = transparent
 
         self.hp = hp
         self.current_hp = hp
+        self.damage_sound = (
+            pygame.mixer.Sound(damage_sound) if damage_sound else damage_sound
+        )
+        self.death_sound = (
+            pygame.mixer.Sound(death_sound) if death_sound else death_sound
+        )
+
+        self.npc = npc
 
     @property
     def is_aimed_at(self):
@@ -99,16 +113,9 @@ class PlacedObject:
             shift = half_height * self.shift
 
             if self.animations and self.distance < self.animation_dist:
-                self.current_sprite = self.animations[self.current_animation][
-                    self.current_frame
-                ]
-                if self.animation_counter < self.animation_speed:
-                    self.animation_counter += 1
-                else:
-                    self.current_frame = (self.current_frame + 1) % len(
-                        self.animations[self.current_animation]
-                    )
-                    self.animation_counter = 0
+                self.in_progress = True
+                self.animate()
+                self.current_sprite = self.animation[self.current_frame]
 
             sprite_position = (
                 middle_ray * cst.SCALE - half_height,
@@ -121,12 +128,15 @@ class PlacedObject:
         else:
             return (False,)
 
-    def take_damage(self):
+    def take_damage(self, damage):
         if self.hp:
-            # take damage
-            if not self.hp:
-                self.death(self)
+            self.current_hp -= damage
+            self.damage_sound.play(0)
+            if not self.current_hp:
+                self.death()
 
     def death(self):
-        print(self.name)
-        del self
+        print(f"{self.name} is slain!")
+        # Insert animation (I don't have one)
+        self.death_sound.play(0)
+        cst.OBJECTS.obj_list.remove(self)

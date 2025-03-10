@@ -1,9 +1,10 @@
 from math import tan, pi
 from pygame import Color
 
+
 SPRITES = {}
 WEAPONS = {}
-
+OBJECTS = None
 
 WIDTH, HEIGHT = 1200, 800
 PROP = HEIGHT // 200
@@ -30,7 +31,16 @@ CENTRAL_RAY = RAY_COUNT // 2 + 1
 
 EPSILON = 1e-6
 
-FLOOR_COLOR = Color("#717171")
+FLOOR_COLOR = Color("#445322")
+# CEILING_COLOR = Color("#8cc3d7")
+# FLOOR_COLOR = Color("#717171")
 CEILING_COLOR = Color("#383838")
 TEXT_COLOR = Color("#FFFFFF")
 RED_COLOR = Color("RED")
+
+
+def mapping(a, b):
+    return (
+        (a // TILE) * TILE,
+        (b // TILE) * TILE,
+    )

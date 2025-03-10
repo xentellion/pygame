@@ -3,6 +3,7 @@
         "animation": "sprites/shotgun",
         "particles": "sprites/shotgun/sfx",
         "animation_speed": 1,
-        "damage": 1
+        "damage": 1,
+        "sound": "audio/8d82b5_doom_shotgun_firing_sound_effect.mp3"
     }
 }

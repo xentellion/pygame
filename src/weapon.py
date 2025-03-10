@@ -1,6 +1,7 @@
 import json
-import os
 import src.global_vars as cst
+from src.animator import Animated
+from pygame import mixer
 
 
 @staticmethod
@@ -11,32 +12,25 @@ def get_weapons():
             cst.WEAPONS[k] = Weapon(**v)
 
 
-class Weapon:
-    def __init__(self, animation, damage, particles, animation_speed):
-        self.animation = [
-            cst.SPRITES[os.path.join(animation, i)]
-            for i in sorted(os.listdir(animation))
-            if not os.path.isdir(os.path.join(animation, i))
-        ]
+class Weapon(Animated):
+    def __init__(self, animation, damage, particles, animation_speed, sound):
+        super().__init__(animation)
         self.particles = GunFlare(
-            animation=[
-                cst.SPRITES[os.path.join(particles, i)]
-                for i in sorted(os.listdir(particles))
-            ],
+            animation=particles,
             animation_speed=animation_speed,
         )
         self.damage = damage
-        self.is_shooting = False
         self.ammo = 100
-        self.current_frame = 0
-        self.animation_counter = 0
-        self.animation_speed = animation_speed
+        self.dealing_damage = False
+        self.sound = mixer.Sound(sound)
 
     def shoot(self):
-        if not self.is_shooting and self.ammo > 0:
-            self.is_shooting = True
+        if not self.in_progress and self.ammo > 0:
+            self.in_progress = True
             self.ammo -= 1
-            self.particles.is_playing = True
+            self.particles.in_progress = True
+            self.dealing_damage = True
+            self.sound.play()
 
     def draw_gun(self):
         weapon_rect = self.animation[self.current_frame]
@@ -44,40 +38,18 @@ class Weapon:
             cst.WIDTH // 2 - weapon_rect.get_width() // 2,
             cst.HEIGHT - weapon_rect.get_height(),
         )
-
-        if self.is_shooting:
-            if self.animation_counter < self.animation_speed:
-                self.animation_counter += 1
-            else:
-                self.current_frame += 1
-                if self.current_frame == len(self.animation):
-                    self.current_frame = 0
-                    self.is_shooting = False
-                self.animation_counter = 0
+        self.animate()
 
         return (weapon_rect, weapon_pos)
 
 
-class GunFlare:
+class GunFlare(Animated):
     def __init__(self, animation, animation_speed):
-        self.animation = animation
-        self.current_frame = 0
-        self.animation_counter = 0
-        self.animation_speed = animation_speed  # From parent
-        self.is_playing = False
+        super().__init__(animation)
 
     def draw_flare(self):
-        if self.is_playing:
+        if self.in_progress:
             flare_rect = self.animation[self.current_frame]
-
-            if self.animation_counter < self.animation_speed:
-                self.animation_counter += 1
-            else:
-                self.current_frame += 1
-                if self.current_frame == len(self.animation):
-                    self.current_frame = 0
-                    self.is_playing = False
-                self.animation_counter = 0
-
+            self.animate()
             return flare_rect
         return False

@@ -27,11 +27,4 @@ def create_map(elements: Sprites, level="maps/level0.txt", tile_size=10):
                 elements.obj_list.append(
                     PlacedObject((x + 0.5, y + 0.5), **items[tile])
                 )
-            # elif tile in doors:
-            #     elements.object_list.append(
-            #         Door(
-            #             elements.sprites[doors[tile]],
-            #             (x + 0.5, y + 0.5),
-            #         )
-            #     )
     return level_map, player_pos

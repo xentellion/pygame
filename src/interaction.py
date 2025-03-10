@@ -1,9 +1,13 @@
 from math import atan2, pi, sin, cos
-from src.render import mapping
-import src.globals as cst
+import src.global_vars as cst
 
 
-def raycast_intercatable(npc_pos, game_map, player_pos):
+class Interactable:
+    def __init__():
+        pass
+
+
+def raycast_interact(npc_pos, game_map, player_pos):
     """Cast a single ray and use as a way to interact with whatever
 
     Args:
@@ -16,7 +20,7 @@ def raycast_intercatable(npc_pos, game_map, player_pos):
     """
     npc_x, npc_y = npc_pos
     ox, oy = player_pos
-    xm, ym = mapping(ox, oy)
+    xm, ym = cst.mapping(ox, oy)
     delta_x, delta_y = ox - npc_x, oy - npc_y
     cur_angle = atan2(delta_y, delta_x)
     cur_angle += pi
@@ -31,7 +35,7 @@ def raycast_intercatable(npc_pos, game_map, player_pos):
     for i in range(0, int(abs(delta_x)) // cst.TILE):
         depth_v = (x - ox) / cos_a
         yv = oy + depth_v * sin_a
-        tile_v = mapping(x + dx, yv)
+        tile_v = cst.mapping(x + dx, yv)
         if tile_v in game_map:
             return False
         x += dx * cst.TILE
@@ -41,7 +45,7 @@ def raycast_intercatable(npc_pos, game_map, player_pos):
     for i in range(0, int(abs(delta_y)) // cst.TILE):
         depth_h = (y - oy) / sin_a
         xh = ox + depth_h * cos_a
-        tile_h = mapping(xh, y + dy)
+        tile_h = cst.mapping(xh, y + dy)
         if tile_h in game_map:
             return False
         y += dy * cst.TILE
