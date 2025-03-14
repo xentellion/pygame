@@ -147,16 +147,23 @@ class Render:
             )
 
     def render_ui(self):
-        # HP
-        hp = f"Health: {cst.PLAYER.hp}/{cst.PLAYER.max_hp}"
+        # Lives
+        lives = f"Жизни: {cst.PLAYER.lives}"
         image = self.font.render(
-            hp, 0, cst.TEXT_COLOR if cst.PLAYER.hp > 10 else cst.RED_COLOR
+            lives, 0, cst.TEXT_COLOR if cst.PLAYER.lives > 1 else cst.RED_COLOR
+        )
+        x, y = image.get_size()
+        self.screen.blit(image, (cst.WIDTH - 65 - x, cst.HEIGHT - 90 - y))
+        # HP
+        hp = f"Здоровье: {cst.PLAYER.hp}/{cst.PLAYER.max_hp}"
+        image = self.font.render(
+            hp, 0, cst.TEXT_COLOR if cst.PLAYER.hp > 20 else cst.RED_COLOR
         )
         x, y = image.get_size()
         self.screen.blit(image, (cst.WIDTH - 65 - x, cst.HEIGHT - 50 - y))
         # Ammo
         num = cst.PLAYER.current_weapon.ammo
-        ammo = f"Ammo: {num}"
+        ammo = f"Патроны: {num}"
         image = self.font.render(ammo, 0, cst.TEXT_COLOR if num else cst.RED_COLOR)
         x, y = image.get_size()
         self.screen.blit(image, (cst.WIDTH - 65 - x, cst.HEIGHT - 10 - y))
@@ -165,3 +172,47 @@ class Render:
         text = str(int(clock.get_fps()))
         image = self.font.render(text, 0, cst.TEXT_COLOR)
         self.screen.blit(image, (65, 10))
+
+    def door_open(self):
+        text = "Феи истреблены"
+        image = self.font.render(text, 0, cst.TEXT_COLOR)
+        self.screen.blit(image, (cst.WIDTH - 265, 10))
+
+    def ui_screen(self, clock, text):
+        # This method render splash screen with text
+        # Used for win/lose and starting text
+        # font = pygame.font.Font("fonts/amazdoomright2.ttf", 50)
+        font = pygame.font.SysFont("LiberationSerif.ttf", 50)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_ESCAPE:
+                        quit()
+                    if cst.GAME_OVER is None:
+                        return
+
+            space = 1.5
+            self.screen.fill(cst.CEILING_COLOR)
+            temp_img = font.render(text[0], 0, cst.TEXT_COLOR)
+            row_height = int(temp_img.get_height() * space)
+            start_point = cst.HALF_HEIGHT - row_height * len(text) // 2
+            height_shift = row_height - 1
+            del temp_img, row_height
+
+            for idx, strin in enumerate(text):
+                image = font.render(strin, 0, cst.TEXT_COLOR)
+                width, height = image.get_size()
+                width_shift = cst.WIDTH // 2 - width // 2
+                self.screen.blit(
+                    image,
+                    (
+                        width_shift,
+                        start_point + height_shift * idx,
+                        height,
+                        width,
+                    ),
+                )
+            pygame.display.flip()
+            clock.tick(cst.FPS_LOCK)

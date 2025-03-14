@@ -1,13 +1,14 @@
 from math import tan, pi
 from pygame import Color
-from src.player import Player
 
 
-PLAYER: Player = None
+PLAYER = None
+PREFABS = {}
 OBJECTS = None
 SPRITES = {}
 WEAPONS = {}
 GAME_MAP = {}
+TEXT = {}
 
 
 WIDTH, HEIGHT = 1200, 800
@@ -34,6 +35,10 @@ DOUBLE_PI = 2 * pi
 CENTRAL_RAY = RAY_COUNT // 2 + 1
 
 EPSILON = 1e-6
+
+GAME_OVER = None
+EXIT_OPEN = False
+EXIT_POINT = None
 
 FLOOR_COLOR = Color("#445322")
 # CEILING_COLOR = Color("#8cc3d7")

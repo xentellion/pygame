@@ -8,6 +8,7 @@ class Player:
     def __init__(self, position):
         self.hp = 100
         self.max_hp = 100
+        self.lives = 3
         # I made this list to hold all weapons in inventory but never made more than one
         # I blame sprites
         self.weaponry = []
@@ -23,6 +24,7 @@ class Player:
         self.angle = 0
 
         self.graze_sound = pygame.mixer.Sound("audio/graze.wav")
+        self.death_sound = pygame.mixer.Sound("audio/pichuun.mp3")
 
     # Sticks to the walls and there is a chance to get stuck in a corner
     # Works, though
@@ -108,9 +110,19 @@ class Player:
         if self.hp > self.max_hp:
             self.hp = self.max_hp
 
+    def give_ammo(self, amount):
+        self.current_weapon.ammo += amount
+
     def death(self):
-        # How do I restart
-        pass
+        self.lives -= 1
+        self.death_sound.play(0)
+        cst.GAME_OVER = True
+
+    def restart(self, position):
+        self.current_weapon.ammo = 10
+        self.hp = self.max_hp
+        self.pos = position
+        self.angle = 0
 
     def quit(self, event):
         match event.type:

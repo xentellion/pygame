@@ -14,7 +14,7 @@ class Weapon(Animated):
             animation_speed=animation_speed,
         )
         self.damage = damage
-        self.ammo = 100
+        self.ammo = 10
         self.dealing_damage = False  # Is used to deal damage on a single frame
         self.sound = mixer.Sound(sound)  # No reload so its fine
 

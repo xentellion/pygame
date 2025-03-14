@@ -1,9 +1,11 @@
-from math import sqrt, atan2, cos, pi, inf
+from math import sqrt, atan2, cos, pi, inf, dist
+from random import randint
 import os
 import pygame
 import src.global_vars as cst
 from src.animator import Animated
 from src.interaction import raycast_interact
+from src.game_state import win_condition
 
 
 class Objects:
@@ -58,6 +60,9 @@ class GameObject(Animated):
             self.animation = self.animations["idle"]
         else:
             self.animations = self.animation = animations
+        self.current_frame = (
+            randint(0, len(self.animation) - 1) if self.animation else 0
+        )
 
         self.position = tuple(map(lambda x: x * cst.TILE, position))
         self.name = name
@@ -86,19 +91,22 @@ class GameObject(Animated):
         self.npc = npc
 
     def is_aimed_at(self):
-        if (
-            cst.CENTRAL_RAY - cst.TEXTURE_SIDE // 2
-            < self.extra_ray  # Sketchy, WILL crash if face_player never called
-            < cst.CENTRAL_RAY + 3 * cst.TEXTURE_SIDE // 2
-            and not self.transparent
-        ):
-            return (self.distance, self.proj_height)
+        try:
+            if (
+                cst.CENTRAL_RAY - cst.TEXTURE_SIDE // 2
+                < self.extra_ray  # Sketchy, WILL crash if face_player never called
+                < cst.CENTRAL_RAY + 3 * cst.TEXTURE_SIDE // 2
+                and not self.transparent
+            ):
+                return (self.distance, self.proj_height)
+        except AttributeError:
+            return inf, 0
         return inf, 0
 
     def face_player(self):
         dx = self.position[0] - cst.PLAYER.pos[0]
         dy = self.position[1] - cst.PLAYER.pos[1]
-        self.distance = sqrt(dx**2 + dy**2)
+        self.distance = dist(self.position, cst.PLAYER.pos)
 
         self.theta = atan2(dy, dx)
         gamma = self.theta - cst.PLAYER.angle
@@ -155,8 +163,8 @@ class GameObject(Animated):
                 )
             # Aura damage
             # Those pesky fairies are dealing moral damage
-            # by abusing your precious sunflowers
-            if dist <= 1.5 * cst.TILE:
+            # by abusing your precious sunflowers lmao
+            if dist <= 2 * cst.TILE:
                 cst.PLAYER.damage(self.damage)
 
     def take_damage(self, damage):
@@ -172,3 +180,59 @@ class GameObject(Animated):
         # Insert animation (I don't have one)
         self.death_sound.play(0)
         cst.OBJECTS.obj_list.remove(self)
+        if self.npc:
+            win_condition()
+            self.drop_item()
+
+    def drop_item(self):
+        # pseudo random drop
+        # It will guarantee ammo or health
+        # if they are critically low on any of those
+        item = randint(0, 2)
+        if cst.PLAYER.current_weapon.ammo < 6:
+            item = 2
+        elif cst.PLAYER.hp < 10:
+            item = 1
+        drop = None
+        match item:
+            case 1:
+                drop = HealthPickUp(
+                    tuple(map(lambda x: x / cst.TILE, self.position)),
+                    **cst.PREFABS["P"],
+                )
+            case 2:
+                drop = AmmoPickUp(
+                    tuple(map(lambda x: x / cst.TILE, self.position)),
+                    **cst.PREFABS["A"],
+                )
+        if drop:
+            cst.OBJECTS.obj_list.append(drop)
+
+
+class HealthPickUp(GameObject):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def face_player(self):
+        # Heal on approach
+        distance = dist(self.position, cst.PLAYER.pos)
+        if distance < cst.TILE:
+            if cst.PLAYER.hp < cst.PLAYER.max_hp:
+                cst.PLAYER.heal(10)
+                self.death_sound.play(0)
+                cst.OBJECTS.obj_list.remove(self)
+        return super(HealthPickUp, self).face_player()
+
+
+class AmmoPickUp(GameObject):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def face_player(self):
+        # Ammo on approach
+        distance = dist(self.position, cst.PLAYER.pos)
+        if distance < cst.TILE:
+            cst.PLAYER.give_ammo(4)
+            self.death_sound.play(0)
+            cst.OBJECTS.obj_list.remove(self)
+        return super(AmmoPickUp, self).face_player()
