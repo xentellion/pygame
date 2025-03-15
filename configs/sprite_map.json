@@ -15,7 +15,7 @@
     },
     "o": {
         "name": "small_lamp",
-        "default": "sprites/decor/lamp_1.png",
+        "default": "sprites/decor/lamp_2.png",
         "animations": null,
         "shift": 0,
         "scale": 1,

@@ -18,7 +18,7 @@ class Player:
 
         self.pos = position
         self.mouse_position = pygame.mouse.get_pos()
-        self.sensitivity = 90
+        self.sensitivity = 1440
         self.collider_side = cst.TILE // 4
         self.rect = pygame.Rect(*self.pos, self.collider_side, self.collider_side)
         self.angle = 0
@@ -65,25 +65,23 @@ class Player:
         x_pos, y_pos = self.check_collision(x_pos, y_pos)
         # Normalize if several inputs
         # No speedy diagonal movement, bucko
-        ln = sqrt(x_pos**2 + y_pos**2)
-        if ln > cst.EPSILON:
+        length = sqrt(x_pos**2 + y_pos**2)
+        if length > cst.EPSILON:
             self.pos = tuple(
                 map(
                     add,
                     self.pos,
-                    tuple(map(lambda x: x / ln * self.speed, (x_pos, y_pos))),
+                    tuple(map(lambda x: x / length * self.speed, (x_pos, y_pos))),
                 )
             )
         self.rect.center = self.pos[0], self.pos[1]
 
     def rotate(self, event):
-        # I should REALLY made it so the mouse won't escape the window
-        if event.type == pygame.MOUSEMOTION:
-            pos = pygame.mouse.get_pos()
-            self.angle += atan(
-                (pos[0] - self.mouse_position[0]) / self.sensitivity,
-            )
-            self.mouse_position = pos
+        # MAN it is so uncomfortable
+        if pygame.mouse.get_focused():
+            difference = pygame.mouse.get_pos()[0] - cst.WIDTH // 2
+            pygame.mouse.set_pos((cst.WIDTH // 2, cst.HALF_HEIGHT))
+            self.angle += difference / self.sensitivity
             self.angle %= cst.DOUBLE_PI
 
     def shoot(self, event, target):

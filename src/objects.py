@@ -27,7 +27,6 @@ class Objects:
 
 
 class GameObject(Animated):
-
     def __init__(
         self,
         position: tuple,

@@ -24,11 +24,6 @@ def restart_level():
     pygame.mixer.music.play(10)
 
 
-def quit():
-    pygame.quit()
-    exit()
-
-
 def main():
     pygame.init()
     pygame.display.set_caption("Yuuka gaming")
@@ -99,6 +94,11 @@ def main():
         renderer.ui_screen(clock, cst.TEXT["good" if cst.PLAYER.lives >= 3 else "bad"])
 
     pygame.quit()
+
+
+def quit():
+    pygame.quit()
+    exit()
 
 
 if __name__ == "__main__":
