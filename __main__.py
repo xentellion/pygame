@@ -19,6 +19,7 @@ def restart_level():
         )
     else:
         cst.PLAYER.restart(position=player_pos)
+    pygame.mixer.pre_init(44100, 16, 2, 4096)
     pygame.mixer.init()
     pygame.mixer.music.load("audio/Doom OST (Touhou Soundfont) - E1M5 Suspense.mp3")
     pygame.mixer.music.play(10)

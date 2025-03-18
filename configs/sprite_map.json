@@ -35,7 +35,7 @@
         },
         "shift": -0.5,
         "scale": 1,
-        "animation_dist": 2000,
+        "animation_dist": 1200,
         "animation_speed": 5,
         "transparent": false,
         "hp": 3,

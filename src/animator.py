@@ -5,10 +5,11 @@ import src.global_vars as cst
 class Animated:
     def __init__(self, animation, animation_speed=1):
         if type(animation) is str:
+            animation = animation.replace(os.sep, "/")
             self.animation = [
-                cst.SPRITES[os.path.join(animation, i)]
+                cst.SPRITES[os.path.join(animation, i).replace(os.sep, "/")]
                 for i in sorted(os.listdir(animation))
-                if not os.path.isdir(os.path.join(animation, i))
+                if not os.path.isdir(os.path.join(animation, i).replace(os.sep, "/"))
             ]
         else:
             self.animation = animation

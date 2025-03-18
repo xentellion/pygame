@@ -11,7 +11,7 @@ class Render:
         self.textures = {}
         for subdir, dirs, files in os.walk("textures"):
             for file in files:
-                path = os.path.join(subdir, file)
+                path = os.path.join(subdir, file).replace(os.sep, "/")
                 self.textures[path] = pygame.image.load(path).convert_alpha()
 
     def render_background(self):
@@ -145,6 +145,7 @@ class Render:
                 shot,
                 (cst.WIDTH // 2 - rect.w // 2, cst.HALF_HEIGHT - rect.h // 2),
             )
+            del shot
 
     def render_ui(self):
         # Lives

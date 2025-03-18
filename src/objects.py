@@ -14,7 +14,7 @@ class Objects:
         # To keep everything in a single sprite atlas
         for subdir, dirs, files in os.walk("sprites"):
             for file in files:
-                path = os.path.join(subdir, file)
+                path = os.path.join(subdir, file).replace(os.sep, "/")
                 cst.SPRITES[path] = pygame.image.load(path).convert_alpha()
         self.obj_list = []
 
